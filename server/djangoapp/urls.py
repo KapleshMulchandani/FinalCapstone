@@ -5,6 +5,7 @@ from django.conf import settings
 from . import views
 from .views import logout_view
 from .views import registration
+from .views import get_cars
 app_name = 'djangoapp'
 urlpatterns = [
     # # path for registration
@@ -13,7 +14,9 @@ urlpatterns = [
     path(route='login', view=views.login_user, name='login'),
     path('logout/', logout_view, name='logout'),
     path('register/', view=views.registration, name='registration'),
-
+    path(route='get_cars', view=views.get_cars, name ='getcars'), 
+    
+    
     # path for dealer reviews view
 
     # path for add a review view
