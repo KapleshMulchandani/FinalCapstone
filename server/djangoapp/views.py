@@ -19,6 +19,7 @@ import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
+from .restapis import get_request, post_review
 
 
 # Get an instance of a logger
@@ -111,26 +112,32 @@ def get_dealerships(request, state="All"):
     dealerships = get_request(endpoint)
     return JsonResponse({"status":200,"dealers":dealerships})
 
-def get_dealer_reviews(request, dealer_id):
-    # if dealer id has been provided
-    if(dealer_id):
-        endpoint = "/fetchReviews/dealer/"+str(dealer_id)
-        reviews = get_request(endpoint)
-        for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            print(response)
-            review_detail['sentiment'] = response['sentiment']
-        return JsonResponse({"status":200,"reviews":reviews})
-    else:
-        return JsonResponse({"status":400,"message":"Bad Request"})
+from django.http import JsonResponse
 
 def get_dealer_details(request, dealer_id):
-    if(dealer_id):
-        endpoint = "/fetchDealer/"+str(dealer_id)
+    if dealer_id:
+        endpoint = f"/fetchDealer/{dealer_id}"  # f-string for better readability
         dealership = get_request(endpoint)
-        return JsonResponse({"status":200,"dealer":dealership})
+        
+        # Check if dealership data was successfully retrieved
+        if dealership:
+            return JsonResponse({"status": 200, "dealer": dealership})
+        else:
+            return JsonResponse({"status": 404, "message": "Dealer not found"})
     else:
-        return JsonResponse({"status":400,"message":"Bad Request"})
+        return JsonResponse({"status": 400, "message": "Bad Request"})
+
+def get_dealer_reviews(request, dealer_id):
+    # Check if dealer id has been provided
+    if dealer_id:
+        endpoint = f"/fetchReviews/dealer/{dealer_id}"
+        reviews = get_request(endpoint)
+        
+        # Remove sentiment analysis; directly return reviews
+        return JsonResponse({"status": 200, "reviews": reviews})
+    else:
+        return JsonResponse({"status": 400, "message": "Bad Request"})
+
 
 def add_review(request):
     if(request.user.is_anonymous == False):
